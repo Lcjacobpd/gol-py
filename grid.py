@@ -12,6 +12,8 @@
 #	3. Any live cell with more than 3 live neighbors dies
 #	4. Any dead cell with 3 live neighbors becomes alive
 
+import random
+
 
 # World space definition
 class Grid:
@@ -36,7 +38,7 @@ class Grid:
 		#print header
 		print(" ", end="")
 		for x in range(self.width):
-			print(x, end="")
+			print(x, end=" ")
 		print()
 
 		#print □ in living cells
@@ -46,11 +48,82 @@ class Grid:
 
 				#print □ in living cels
 				if self.matrix[x][y]['status'] == 1:
-					print("□", end="")
+					print("■ ", end="")
 				else:
-					print("_", end="")
-
+					print("□ ", end="")
 			print()
 
-m = Grid(5, 5)
+
+	#randomly populate world cells (50-50 chance)
+	def populate(self):
+		for x in range(self.width):
+			for y in range(self.height):
+				self.matrix[x][y]['status'] = random.choice([1,0]) 
+	
+
+	#display several generations of the grid
+	def iterate(self, generations):
+		for i in range(generations):
+			#label generation
+			print()
+			print("Generation: \t", i)
+			print("--------------------")
+
+			#display grid (starting with inital)
+			self.display()
+			
+			#create next generation according to the grid rules
+			subsequent_matrix = []
+			h = self.height - 1
+			w = self.width  - 1
+
+			for x in range(self.width):
+				sub_column = []
+				for y in range(self.height):
+					cell = self.matrix[x][y]
+					neighbor_count = 0 #living neighbors
+
+					#determin living neighbors
+					if x > 0:
+						neighbor_count += self.matrix[x-1][y]['status'] #alive = 1
+						if y > 0: neighbor_count += self.matrix[x-1][y-1]['status']
+						if y < h: neighbor_count += self.matrix[x-1][y+1]['status']
+					
+					if x < w:
+						neighbor_count += self.matrix[x+1][y]['status']
+						if y > 0: neighbor_count += self.matrix[x+1][y-1]['status']
+						if y < h: neighbor_count += self.matrix[x+1][y+1]['status']
+
+					if y > 0: neighbor_count += self.matrix[x][y-1]['status']
+					if y < h: neighbor_count += self.matrix[x][y+1]['status']
+
+					#check grid rules	
+					if cell['status'] == 1: #living cell
+						if neighbor_count < 2: #rule 1
+							sub_column.append({'x':x, 'y':y, 'status':0})
+
+						elif neighbor_count < 4: #rule 2
+							sub_column.append({'x':x, 'y':y, 'status':1})
+
+						elif neighbor_count > 3: #rule 3
+							sub_column.append({'x':x, 'y':y, 'status':0})
+
+					else: #dead cell
+						if neighbor_count == 3: #rule 4
+							sub_column.append({'x':x, 'y':y, 'status':1})
+						else: #default = dead
+							sub_column.append({'x':x, 'y':y, 'status':0})			
+	
+				subsequent_matrix.append(sub_column)
+			self.matrix = subsequent_matrix
+
+					
+
+
+m = Grid(10, 10)
 m.display()
+m.populate()
+m.iterate(5)
+
+
+
