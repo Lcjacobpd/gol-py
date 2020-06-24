@@ -89,7 +89,7 @@ class Grid:
 	
 	
 	#DISPLAY SEVERAL GENERATIONS OF THE GRID
-	def iterate(self, generations, display_all):
+	def iterate(self, generations, display_all = True):
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
@@ -186,8 +186,13 @@ class Grid:
 		print(f"Skipping to generation {n}...")
 		self.iterate(n, False) #iterate without showing each generation
 		self.display()
-
-
+	
+	
+	#GO TO THE NEXT GENERATION
+	def next(self, display = False):
+		self.advance(1, False)
+		self.display()
+		
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
 	def census(self):
@@ -205,7 +210,7 @@ class Grid:
 m = Grid(25, 25)
 m.display()
 m.populate()
-m.iterate(5, True)
+m.iterate(5)
 
 n = Grid.template("gosper_glider.txt")
 n.advance(35)
