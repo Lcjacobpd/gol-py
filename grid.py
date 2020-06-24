@@ -95,18 +95,21 @@ class Grid:
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
-
-		for i in range(generations):
-			#label generation
-			if display_all:
-				print()
-				print("Generation: \t", i)
-				for j in range(self.width):
-					print("---", end="")
-				print('-')
-
-			#display grid (starting with inital)
-			if display_all: self.display()
+		
+		#label generation
+		if display_all:
+			print()
+			print("Generation: \t", 0)
+			for j in range(self.width):
+				print("---", end="")
+			print('-')
+			
+		#display initial grid
+		if display_all: self.display()
+		print()
+		
+		for i in range(generations - 1):
+			
 			
 			#create next generation according to the grid rules
 			subsequent_matrix = []
@@ -167,6 +170,17 @@ class Grid:
 				subsequent_matrix.append(sub_column)
 			self.matrix = subsequent_matrix #update matrix
 
+			#label generation
+			if display_all:
+				print()
+				print("Generation: \t", i+1)
+				for j in range(self.width):
+					print("---", end="")
+				print('-')
+
+			#display grid (starting with inital)
+			if display_all: self.display()
+			
 			#display generation statistics
 			if display_all:
 				print(f"Before: {alive:>3}")
@@ -174,7 +188,7 @@ class Grid:
 				print(f"       -{died:>3d} (died)")
 				print(f"After:  {self.census():3d} ({survived} survivors)")
 				print()	
-
+		
 		#display total lifetime statistics
 		if display_all:
 			print("Final statistics:")
@@ -186,14 +200,12 @@ class Grid:
 	#SKIP FORWARD N GENERATIONS
 	def advance(self, n):
 		print(f"Skipping to generation {n}...")
-		self.iterate(n, False) #iterate without showing each generation
-		self.display()
+		self.iterate(n, False) #iterate showing only last generation
 	
 	
 	#GO TO THE NEXT GENERATION
 	def next(self, display = False):
 		self.advance(1, False)
-		self.display()
 		
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
@@ -213,16 +225,29 @@ parser = argparse.ArgumentParser(description="get user input")
 parser.add_argument("w", type=int)
 parser.add_argument("h", type=int)
 parser.add_argument("--template")
+parser.add_argument("--gen", type=int)
 args = parser.parse_args()
 
 #process user parameters
 if args.template: #if template is specified, disregard dimensions
 	m = Grid.template(args.template)
-	m.display()
+	
+	if args.gen: #call iterate if necessary
+		print(f"Showing {args.gen} generations...")
+		m.iterate(args.gen)
+	else:
+		m.display()
 
 elif args.w and args.h:
+	print("No template specified, assuming random population")
 	m = Grid(args.w, args.h)
-	m.display()
+	m.populate()
+
+	if args.gen:
+		print(f"Showing {args.gen} generations...")
+		m.iterate(args.gen)
+	else:
+		m.display()
 
 
 
