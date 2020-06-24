@@ -61,22 +61,49 @@ class Grid:
 				self.matrix[x][y]['status'] = random.choice([1,0]) 
 	
 
+	#READ TEMPLATE FROM FILE
+	def template(filename):
+		f = open(filename, 'rt')
+		rows = csv.reader(f)
+		
+		#header of file containts grid dimmensions
+		header = next(rows)
+		print(f"Reading {filename} with dimensions:", header)
+		h = int(header[0])
+		w = int(header[1])
+		
+		#create new grid to populate
+		preset = Grid(h, w)
+
+		xpos = 0 #x position marker
+		ypos = 0
+		for row in rows:
+			xpos = 0
+			for char in row[0]:
+				preset.matrix[ypos][xpos]['status'] = int(char)
+				xpos += 1
+			ypos += 1 
+
+		return  preset
+	
+	
 	#DISPLAY SEVERAL GENERATIONS OF THE GRID
-	def iterate(self, generations):
+	def iterate(self, generations, display_all):
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
 
 		for i in range(generations):
 			#label generation
-			print()
-			print("Generation: \t", i)
-			for j in range(self.width):
-				print("---", end="")
-			print('-')
+			if display_all:
+				print()
+				print("Generation: \t", i)
+				for j in range(self.width):
+					print("---", end="")
+				print('-')
 
 			#display grid (starting with inital)
-			self.display()
+			if display_all: self.display()
 			
 			#create next generation according to the grid rules
 			subsequent_matrix = []
@@ -138,17 +165,27 @@ class Grid:
 			self.matrix = subsequent_matrix #update matrix
 
 			#display generation statistics
-			print(f"Before: {alive:>3}")
-			print(f"       +{born:>3d} (born)")
-			print(f"       -{died:>3d} (died)")
-			print(f"After:  {self.census():3d} ({survived} survivors)")
-			print()	
+			if display_all:
+				print(f"Before: {alive:>3}")
+				print(f"       +{born:>3d} (born)")
+				print(f"       -{died:>3d} (died)")
+				print(f"After:  {self.census():3d} ({survived} survivors)")
+				print()	
 
 		#display total lifetime statistics
-		print("Final statistics:")
-		print(f"born:     {total_born:>3d}")
-		print(f"died:     {total_died:>3d}")
-		print()
+		if display_all:
+			print("Final statistics:")
+			print(f"born:     {total_born:>3d}")
+			print(f"died:     {total_died:>3d}")
+			print()
+
+
+	#SKIP FORWARD N GENERATIONS
+	def advance(self, n):
+		print(f"Skipping to generation {n}...")
+		self.iterate(n, False) #iterate without showing each generation
+		self.display()
+
 
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
@@ -161,38 +198,14 @@ class Grid:
 		return count
 
 
-	#READ TEMPLATE FROM FILE
-	def template(filename):
-		f = open(filename, 'rt')
-		rows = csv.reader(f)
-		
-		#header of file containts grid dimmensions
-		header = next(rows)
-		print(f"Reading {filename} with dimensions:", header)
-		h = int(header[0])
-		w = int(header[1])
-		
-		#create new grid to populate
-		preset = Grid(h, w)
-
-		xpos = 0 #x position marker
-		ypos = 0
-		for row in rows:
-			xpos = 0
-			for char in row[0]:
-				preset.matrix[ypos][xpos]['status'] = int(char)
-				xpos += 1
-			ypos += 1 
-
-		return  preset
 			
 
-
+#test space
 m = Grid(25, 25)
 m.display()
 m.populate()
-m.iterate(5)
+m.iterate(5, True)
 
 n = Grid.template("gosper_glider.txt")
-n.iterate(35)
+n.advance(35)
 
