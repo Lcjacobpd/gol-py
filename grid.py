@@ -63,6 +63,11 @@ class Grid:
 
 	#display several generations of the grid
 	def iterate(self, generations):
+		#lifetime statistic variables
+		total_died = 0;
+		total_born = 0;
+		total_survived = 0;
+
 		for i in range(generations):
 			#label generation
 			print()
@@ -76,6 +81,12 @@ class Grid:
 			subsequent_matrix = []
 			h = self.height - 1
 			w = self.width  - 1
+
+			#generation statistics
+			alive = self.census()
+			born = 0
+			died = 0
+			survived = 0
 
 			for x in range(self.width):
 				sub_column = []
@@ -101,24 +112,53 @@ class Grid:
 					if cell['status'] == 1: #living cell
 						if neighbor_count < 2: #rule 1
 							sub_column.append({'x':x, 'y':y, 'status':0})
+							died += 1
+							total_died += 1
 
 						elif neighbor_count < 4: #rule 2
 							sub_column.append({'x':x, 'y':y, 'status':1})
+							survived += 1
+							total_survived += 1
 
 						elif neighbor_count > 3: #rule 3
 							sub_column.append({'x':x, 'y':y, 'status':0})
+							died += 1
+							total_died += 1
 
 					else: #dead cell
 						if neighbor_count == 3: #rule 4
 							sub_column.append({'x':x, 'y':y, 'status':1})
+							born += 1
+							total_born += 1
+
 						else: #default = dead
 							sub_column.append({'x':x, 'y':y, 'status':0})			
 	
 				subsequent_matrix.append(sub_column)
-			self.matrix = subsequent_matrix
+			self.matrix = subsequent_matrix #update matrix
 
-					
+			#display generation statistics
+			print(f"Before: {alive:>3}")
+			print(f"       +{born:>3d} (born)")
+			print(f"       -{died:>3d} (died)")
+			print(f"After:  {self.census():3d} ({survived} survivors)")
+			print()	
 
+		#display total lifetime statistics
+		print("Final statistics:")
+		print(f"born:     {total_born:>3d}")
+		print(f"died:     {total_died:>3d}")
+		print(f"survived: {total_survived:>3d}")
+		print()
+
+	#count the number of living cells in the grid					
+	def census(self):
+		count = 0
+		for x in range(self.width):
+			for y in range(self.height):
+				count += self.matrix[x][y]['status'] #alive = 1
+
+		return count
 
 m = Grid(10, 10)
 m.display()
