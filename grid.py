@@ -198,14 +198,14 @@ class Grid:
 
 
 	#SKIP FORWARD N GENERATIONS
-	def advance(self, n):
+	def advance(self, n, display=False):
 		print(f"Skipping to generation {n}...")
-		self.iterate(n, False) #iterate showing only last generation
+		self.iterate(n, display) #iterate showing only last generation
 	
 	
 	#GO TO THE NEXT GENERATION
-	def next(self, display = False):
-		self.advance(1, False)
+	def next(self, display = True):
+		self.advance(1, display)
 		
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
@@ -226,10 +226,40 @@ parser.add_argument("w", type=int)
 parser.add_argument("h", type=int)
 parser.add_argument("--template")
 parser.add_argument("--gen", type=int)
+parser.add_argument("--repl")
 args = parser.parse_args()
 
 #process user parameters
-if args.template: #if template is specified, disregard dimensions
+if args.repl: #manual control
+	m = Grid(5,5)
+
+	#check for template
+	if args.template:
+		m = Grid.template(args.template)
+	else:
+		m = Grid(args.w, args.h)	
+
+	print("Enabling REPL control...")
+	command = "run"
+
+	while command != "stop":
+		print("----------")
+		print("Options:")
+		print("----------")
+		print("next - next generation")
+		print("exit")
+
+		#get user command
+		command = input("command: ")
+
+		if command == "exit": 
+			print("Exiting...")
+			break
+		elif command == "next":
+			m.next() 
+
+
+elif args.template: #if template is specified, disregard dimensions
 	m = Grid.template(args.template)
 	
 	if args.gen: #call iterate if necessary
