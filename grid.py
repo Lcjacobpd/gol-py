@@ -36,21 +36,21 @@ class Grid:
 	#display world matrix
 	def display(self):
 		#print header
-		print(" ", end="")
+		print("  ", end="")
 		for x in range(self.width):
-			print(x, end=" ")
+			print(f"{x:2d}", end=" ")
 		print()
 
 		#print □ in living cells
 		for x in range(self.width):
-			print(x, end="")
+			print(f"{x:2d}", end="")
 			for y in range(self.height):
 
 				#print □ in living cels
 				if self.matrix[x][y]['status'] == 1:
-					print("■ ", end="")
+					print(" ■ ", end="")
 				else:
-					print("□ ", end="")
+					print(" □ ", end="")
 			print()
 
 
@@ -66,13 +66,14 @@ class Grid:
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
-		total_survived = 0;
 
 		for i in range(generations):
 			#label generation
 			print()
 			print("Generation: \t", i)
-			print("--------------------")
+			for j in range(self.width):
+				print("---", end="")
+			print('-')
 
 			#display grid (starting with inital)
 			self.display()
@@ -118,7 +119,6 @@ class Grid:
 						elif neighbor_count < 4: #rule 2
 							sub_column.append({'x':x, 'y':y, 'status':1})
 							survived += 1
-							total_survived += 1
 
 						elif neighbor_count > 3: #rule 3
 							sub_column.append({'x':x, 'y':y, 'status':0})
@@ -148,7 +148,6 @@ class Grid:
 		print("Final statistics:")
 		print(f"born:     {total_born:>3d}")
 		print(f"died:     {total_died:>3d}")
-		print(f"survived: {total_survived:>3d}")
 		print()
 
 	#count the number of living cells in the grid					
@@ -160,7 +159,7 @@ class Grid:
 
 		return count
 
-m = Grid(10, 10)
+m = Grid(25, 25)
 m.display()
 m.populate()
 m.iterate(5)
