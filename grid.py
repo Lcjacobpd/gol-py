@@ -14,6 +14,8 @@
 
 import random
 import csv
+import argparse
+
 
 # World space definition
 class Grid:
@@ -204,17 +206,23 @@ class Grid:
 		return count
 
 
-			
+#MAIN PROGRAM
 
-#test space
-m = Grid(25, 25)
-m.display()
-m.populate()
-m.iterate(5)
+#setup parser
+parser = argparse.ArgumentParser(description="get user input")
+parser.add_argument("w", type=int)
+parser.add_argument("h", type=int)
+parser.add_argument("--template")
+args = parser.parse_args()
 
-n = Grid.template("gosper_glider.txt")
-n.advance(35)
+#process user parameters
+if args.template: #if template is specified, disregard dimensions
+	m = Grid.template(args.template)
+	m.display()
 
-k = Grid.template("spiral_galaxy.txt")
-k.display()
+elif args.w and args.h:
+	m = Grid(args.w, args.h)
+	m.display()
+
+
 
