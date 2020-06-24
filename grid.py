@@ -13,12 +13,12 @@
 #	4. Any dead cell with 3 live neighbors becomes alive
 
 import random
-
+import csv
 
 # World space definition
 class Grid:
 	 
-	#constructor
+	#CONTSTRUCTOR
 	def __init__(self, height, width):
 		self.height = height
 		self.width  = width
@@ -33,7 +33,7 @@ class Grid:
 			self.matrix.append(column)
 
 
-	#display world matrix
+	#DISPLAY WORLD MATRIX
 	def display(self):
 		#print header
 		print("  ", end="")
@@ -54,14 +54,14 @@ class Grid:
 			print()
 
 
-	#randomly populate world cells (50-50 chance)
+	#RANDOMLY POPULATE CELLS (50-50 chance)
 	def populate(self):
 		for x in range(self.width):
 			for y in range(self.height):
 				self.matrix[x][y]['status'] = random.choice([1,0]) 
 	
 
-	#display several generations of the grid
+	#DISPLAY SEVERAL GENERATIONS OF THE GRID
 	def iterate(self, generations):
 		#lifetime statistic variables
 		total_died = 0;
@@ -150,7 +150,8 @@ class Grid:
 		print(f"died:     {total_died:>3d}")
 		print()
 
-	#count the number of living cells in the grid					
+
+	#COUNT LIVNG CELLS IN GRIDSPACE
 	def census(self):
 		count = 0
 		for x in range(self.width):
@@ -159,10 +160,39 @@ class Grid:
 
 		return count
 
+
+	#READ TEMPLATE FROM FILE
+	def template(filename):
+		f = open(filename, 'rt')
+		rows = csv.reader(f)
+		
+		#header of file containts grid dimmensions
+		header = next(rows)
+		print(f"Reading {filename} with dimensions:", header)
+		h = int(header[0])
+		w = int(header[1])
+		
+		#create new grid to populate
+		preset = Grid(h, w)
+
+		xpos = 0 #x position marker
+		ypos = 0
+		for row in rows:
+			xpos = 0
+			for char in row[0]:
+				preset.matrix[ypos][xpos]['status'] = int(char)
+				xpos += 1
+			ypos += 1 
+
+		return  preset
+			
+
+
 m = Grid(25, 25)
 m.display()
 m.populate()
 m.iterate(5)
 
-
+n = Grid.template("gosper_glider.txt")
+n.iterate(35)
 
