@@ -19,7 +19,7 @@ import csv
 class Grid:
 	 
 	#CONTSTRUCTOR
-	def __init__(self, height, width):
+	def __init__(self, width, height):
 		self.height = height
 		self.width  = width
 		self.matrix = []
@@ -36,19 +36,19 @@ class Grid:
 	#DISPLAY WORLD MATRIX
 	def display(self):
 		#print header
-		print("  ", end="")
-		for x in range(self.width):
+		print(u"\u001b[36m  ", end="")
+		for x in range(self.height):
 			print(f"{x:2d}", end=" ")
-		print()
+		print(u"\u001b[0m")
 
 		#print □ in living cells
 		for x in range(self.width):
-			print(f"{x:2d}", end="")
+			print(u"\u001b[36m" + f"{x:2d}", end=u"\u001b[0m")
 			for y in range(self.height):
 
 				#print □ in living cels
 				if self.matrix[x][y]['status'] == 1:
-					print(" ■ ", end="")
+					print(u"\u001b[33m ■ \u001b[0m", end="")
 				else:
 					print(" □ ", end="")
 			print()
@@ -68,12 +68,13 @@ class Grid:
 		
 		#header of file containts grid dimmensions
 		header = next(rows)
+		print()
 		print(f"Reading {filename} with dimensions:", header)
-		h = int(header[0])
-		w = int(header[1])
-		
+		w = int(header[0])
+		h = int(header[1])	
+	
 		#create new grid to populate
-		preset = Grid(h, w)
+		preset = Grid(w, h)
 
 		xpos = 0 #x position marker
 		ypos = 0
@@ -208,4 +209,7 @@ m.iterate(5, True)
 
 n = Grid.template("gosper_glider.txt")
 n.advance(35)
+
+k = Grid.template("spiral_galaxy.txt")
+k.display()
 
