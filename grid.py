@@ -14,7 +14,6 @@
 
 import random
 import csv
-import argparse
 
 
 # World space definition
@@ -38,7 +37,7 @@ class Grid:
 	#DISPLAY WORLD MATRIX
 	def display(self):
 		#print header
-		print(u"\u001b[36m  ", end="")
+		print(u"\u001b[31m  ", end="")
 		for x in range(self.height):
 			print(f"{x:2d}", end=" ")
 		print(u"\u001b[0m")
@@ -199,13 +198,16 @@ class Grid:
 
 	#SKIP FORWARD N GENERATIONS
 	def advance(self, n, display=False):
-		print(f"Skipping to generation {n}...")
+		if n > 1:
+			print(f"Skipping to generation {n}...")
 		self.iterate(n, display) #iterate showing only last generation
+		
 	
 	
 	#GO TO THE NEXT GENERATION
-	def next(self, display = True):
-		self.advance(1, display)
+	def next(self):
+		self.iterate(2, False)
+		self.display()
 		
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
@@ -218,8 +220,11 @@ class Grid:
 		return count
 
 
-#MAIN PROGRAM
 
+
+#TEST AREA
+
+import argparse
 #setup parser
 parser = argparse.ArgumentParser(description="get user input")
 parser.add_argument("w", type=int)
@@ -229,9 +234,10 @@ parser.add_argument("--gen", type=int)
 parser.add_argument("--repl")
 args = parser.parse_args()
 
+
 #process user parameters
 if args.repl: #manual control
-	m = Grid(5,5)
+	m = Grid(10,10) #default to be overwritten
 
 	#check for template
 	if args.template:
@@ -240,23 +246,80 @@ if args.repl: #manual control
 		m = Grid(args.w, args.h)	
 
 	print("Enabling REPL control...")
+	m.display()
+	
+	#runtime loop
 	command = "run"
-
 	while command != "stop":
-		print("----------")
-		print("Options:")
-		print("----------")
-		print("next - next generation")
+		print()
+		print("next  - show next generation")
+		print("alter - change cell state")
+		print("reset - create new grid")
 		print("exit")
+		print("----------")
 
 		#get user command
-		command = input("command: ")
+		command = input()
 
-		if command == "exit": 
+		#get and display next generation
+		if command == "next":
+			m.next()
+		
+		#reset/create new grid		
+		elif command == "reset":
+			print()
+			print("\tload   - load template file")
+			print("\trandom - randomly populate")
+			print("\tclean  - empty grid")
+			print("\t----------")
+			command = input("\t")
+			
+			if command == "load":
+				filename = input("Enter template file name: ")
+				m = Grid.template(filename)
+				m.display()
+				
+			elif command == "random" or command == "clean":
+				dimensions = input("\tHeight, Width:").split(',')
+				h = int(dimensions[0])
+				w = int(dimensions[1])
+				m = Grid(h, w) #clean grid
+				
+				if command == "random":
+					#generate random grid
+					m.populate()
+
+				m.display()
+			
+			else:
+				print("\tUnknown command: cancelling")
+					
+		#change cell state
+		elif command == "alter":
+			#get cell to be modified
+			cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')
+			x = int(cell_position[0])
+			y = int(cell_position[1])
+			
+			#ensure position is valid
+			while x < 0 or x >= m.width or y < 0 or y >= m.height: 
+				print("\tPosition is out of bounds")
+				cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')	
+				x = int(cell_position[0])
+				y = int(cell_position[1])
+				
+			#get new cell state
+			cell_state = input("\t1 = alive, 0 = dead ")
+			
+			#update cell in grid & display changes
+			m.matrix[x][y]['status'] = int(cell_state)
+			m.display()
+			
+		#close program		
+		elif command == "exit": 
 			print("Exiting...")
 			break
-		elif command == "next":
-			m.next() 
+		
 
 
 elif args.template: #if template is specified, disregard dimensions
