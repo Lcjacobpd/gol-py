@@ -14,6 +14,8 @@
 
 import random
 import csv
+import time
+from os import system
 
 # World space definition
 class Grid:
@@ -36,7 +38,7 @@ class Grid:
 	#DISPLAY WORLD MATRIX
 	def display(self):
 		#print header
-		print(u"\u001b[36m  ", end="")
+		print(u"\u001b[31m  ", end="")
 		for x in range(self.height):
 			print(f"{x:2d}", end=" ")
 		print(u"\u001b[0m")
@@ -89,22 +91,29 @@ class Grid:
 	
 	
 	#DISPLAY SEVERAL GENERATIONS OF THE GRID
-	def iterate(self, generations, display_all = True):
+	def iterate(self, generations, display_all = True, frame_delay = 0):
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
-
-		for i in range(generations):
-			#label generation
-			if display_all:
-				print()
-				print("Generation: \t", i)
-				for j in range(self.width):
-					print("---", end="")
-				print('-')
-
-			#display grid (starting with inital)
-			if display_all: self.display()
+		
+		#label generation
+		if display_all:
+			print()
+			print("Generation: \t", 0)
+			for j in range(self.width):
+				print("---", end="")
+			print('-')
+			
+		#display initial grid
+		if display_all: self.display()
+		print()
+		
+		for i in range(generations - 1):
+			#delay
+			time.sleep(frame_delay)
+			
+			#clear grid for next generation
+			#if display_all:
 			
 			#create next generation according to the grid rules
 			subsequent_matrix = []
@@ -165,6 +174,17 @@ class Grid:
 				subsequent_matrix.append(sub_column)
 			self.matrix = subsequent_matrix #update matrix
 
+			#label generation
+			if display_all:
+				print()
+				print("Generation: \t", i+1)
+				for j in range(self.width):
+					print("---", end="")
+				print('-')
+
+			#display grid (starting with inital)
+			if display_all: self.display()
+			
 			#display generation statistics
 			if display_all:
 				print(f"Before: {alive:>3}")
@@ -172,7 +192,7 @@ class Grid:
 				print(f"       -{died:>3d} (died)")
 				print(f"After:  {self.census():3d} ({survived} survivors)")
 				print()	
-
+		
 		#display total lifetime statistics
 		if display_all:
 			print("Final statistics:")
@@ -182,15 +202,16 @@ class Grid:
 
 
 	#SKIP FORWARD N GENERATIONS
-	def advance(self, n):
-		print(f"Skipping to generation {n}...")
-		self.iterate(n, False) #iterate without showing each generation
-		self.display()
+	def advance(self, n, display=False):
+		if n > 1:
+			print(f"Skipping to generation {n}...")
+		self.iterate(n, display) #iterate showing only last generation
+		
 	
 	
 	#GO TO THE NEXT GENERATION
-	def next(self, display = False):
-		self.advance(1, False)
+	def next(self):
+		self.iterate(2, False)
 		self.display()
 		
 
@@ -204,17 +225,184 @@ class Grid:
 		return count
 
 
+
+
+#TEST AREA
+
+import argparse
+#setup parser
+parser = argparse.ArgumentParser(description="get user input")
+parser.add_argument("w", type=int)
+parser.add_argument("h", type=int)
+parser.add_argument("--template")
+parser.add_argument("--gen", type=int)
+parser.add_argument("--repl")
+args = parser.parse_args()
+
+
+#process user parameters
+if args.repl: #manual control
+	m = Grid(10,10) #default to be overwritten
+
+	#check for template
+	if args.template:
+		m = Grid.template(args.template)
+	else:
+		m = Grid(args.w, args.h)	
+
+	print("Enabling REPL control...")
+	m.display()
+	
+	#runtime loop
+	command = "run"
+	while command != "stop":
+		print()
+		print("next  - show next generation")
+		print("run   - iterate generations")
+		print("alter - change cell state")
+		print("reset - create new grid")
+		print("exit")
+		print("----------")
+
+		#get user command
+		command = input()
+
+		#get and display next generation
+		if command == "next":
+			m.next()
 			
+		#produce grid generations
+		if command == "run":
+			#variables
+			frame_delay = 1
+			generations = 5
+			display_all = True
+		
+			#grid iteration control loop
+			while command != "begin":
+				print()
+				print("\tenter variable name to modify")
+				print(f"\t[frame_delay: {frame_delay}]")
+				print(f"\t[generations: {generations}]")
+				print(f"\t[display_all: {display_all}]")
+				print()
+				print("\tbegin")
+				print("\t----------")
+				command = input("\t")
+				
+				#modify frame delay
+				if command == "frame_delay":
+					frame_delay = int(input("\t\t(int)frame_delay: "))
+					if frame_delay < 1:
+						print("\t\tMinimum delay is 1")
+						frame_delay = 1
+						
+				elif command == "generations":
+					generations = int(input("\t\t(int)generations: "))
+					if generations < 1:
+						print("\t\tMinimum count is 1")
+						generations = 1
+						
+				elif command == "display_all":
+					display = input("\t\t(bool)display_all: ")
+					if display == "True":
+						display_all = True
+					else: display_all = False
+					
+				elif command == "begin":
+					continue
+					
+				else:
+					print("\tUnknown command: cancelling")
+					break
+			#catch unknown command break
+			if command != "begin": 
+				command == "stop"
+				continue
+			
+			#user chose "begin"
+			m.iterate(generations,display_all,frame_delay)
+			
+		
+		
+		#reset/create new grid		
+		elif command == "reset":
+			print()
+			print("\tload   - load template file")
+			print("\trandom - randomly populate")
+			print("\tclean  - empty grid")
+			print("\t----------")
+			command = input("\t")
+			
+			#load template file
+			if command == "load":
+				filename = input("Enter template file name: ")
+				m = Grid.template(filename)
+				m.display()
+			
+			#populate randomly or clean grid
+			elif command == "random" or command == "clean":
+				dimensions = input("\tHeight, Width:").split(',')
+				h = int(dimensions[0])
+				w = int(dimensions[1])
+				m = Grid(h, w) #clean grid
+				
+				if command == "random":
+					#generate random grid
+					m.populate()
 
-#test space
-m = Grid(25, 25)
-m.display()
-m.populate()
-m.iterate(5)
+				m.display()
+			
+			else:
+				print("\tUnknown command: cancelling")
+					
+		#change cell state
+		elif command == "alter":
+			#get cell to be modified
+			cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')
+			x = int(cell_position[0])
+			y = int(cell_position[1])
+			
+			#ensure position is valid
+			while x < 0 or x >= m.width or y < 0 or y >= m.height: 
+				print("\tPosition is out of bounds")
+				cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')	
+				x = int(cell_position[0])
+				y = int(cell_position[1])
+				
+			#get new cell state
+			cell_state = input("\t1 = alive, 0 = dead ")
+			
+			#update cell in grid & display changes
+			m.matrix[x][y]['status'] = int(cell_state)
+			m.display()
+			
+		#close program		
+		elif command == "exit": 
+			print("Exiting...")
+			break
+		
 
-n = Grid.template("gosper_glider.txt")
-n.advance(35)
 
-k = Grid.template("spiral_galaxy.txt")
-k.display()
+elif args.template: #if template is specified, disregard dimensions
+	m = Grid.template(args.template)
+	
+	if args.gen: #call iterate if necessary
+		print(f"Showing {args.gen} generations...")
+		m.iterate(args.gen)
+	else:
+		m.display()
+
+elif args.w and args.h:
+	print("No template specified, assuming random population")
+	m = Grid(args.w, args.h)
+	m.populate()
+
+	if args.gen:
+		print(f"Showing {args.gen} generations...")
+		m.iterate(args.gen)
+	else:
+		m.display()
+
+
 
