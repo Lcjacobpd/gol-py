@@ -253,6 +253,7 @@ if args.repl: #manual control
 	while command != "stop":
 		print()
 		print("next  - show next generation")
+		print("run   - iterate generations")
 		print("alter - change cell state")
 		print("reset - create new grid")
 		print("exit")
@@ -264,6 +265,60 @@ if args.repl: #manual control
 		#get and display next generation
 		if command == "next":
 			m.next()
+			
+		#produce grid generations
+		if command == "run":
+			#variables
+			frame_delay = 1
+			generations = 5
+			display_all = True
+		
+			#grid iteration control loop
+			while command != "begin":
+				print()
+				print("\tenter variable name to modify")
+				print(f"\t[frame_delay: {frame_delay}]")
+				print(f"\t[generations: {generations}]")
+				print(f"\t[display_all: {display_all}]")
+				print()
+				print("\tbegin")
+				print("\t----------")
+				command = input("\t")
+				
+				#modify frame delay
+				if command == "frame_delay":
+					frame_delay = int(input("\t\t(int)frame_delay: "))
+					if frame_delay < 1:
+						print("\t\tMinimum delay is 1")
+						frame_delay = 1
+						
+				elif command == "generations":
+					generations = int(input("\t\t(int)generations: "))
+					if generations < 1:
+						print("\t\tMinimum count is 1")
+						generations = 1
+						
+				elif command == "display_all":
+					display = input("\t\t(bool)display_all: ")
+					if display == "True":
+						display_all = True
+					else: display_all = False
+					
+				elif command == "begin":
+					continue
+					
+				else:
+					print("\tUnknown command: cancelling")
+					break
+			#catch unknown command break
+			if command != "begin": 
+				command == "stop"
+				continue
+			
+			#user chose "begin"
+			m.iterate(generations,display_all)
+			
+		
 		
 		#reset/create new grid		
 		elif command == "reset":
@@ -274,11 +329,13 @@ if args.repl: #manual control
 			print("\t----------")
 			command = input("\t")
 			
+			#load template file
 			if command == "load":
 				filename = input("Enter template file name: ")
 				m = Grid.template(filename)
 				m.display()
-				
+			
+			#populate randomly or clean grid
 			elif command == "random" or command == "clean":
 				dimensions = input("\tHeight, Width:").split(',')
 				h = int(dimensions[0])
