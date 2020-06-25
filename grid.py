@@ -105,8 +105,9 @@ class Grid:
 			print('-')
 			
 		#display initial grid
-		if display_all: self.display()
-		print()
+		if display_all: 
+			self.display()
+			print()
 		
 		for i in range(generations - 1):
 			#delay
@@ -176,6 +177,7 @@ class Grid:
 
 			#label generation
 			if display_all:
+				clear_frame()
 				print()
 				print("Generation: \t", i+1)
 				for j in range(self.width):
@@ -195,6 +197,7 @@ class Grid:
 		
 		#display total lifetime statistics
 		if display_all:
+			time.sleep(frame_delay)
 			print("Final statistics:")
 			print(f"born:     {total_born:>3d}")
 			print(f"died:     {total_died:>3d}")
@@ -240,6 +243,11 @@ parser.add_argument("--repl")
 args = parser.parse_args()
 
 
+#clear display for next frame
+def clear_frame():
+	_ = system('clear')
+
+
 #process user parameters
 if args.repl: #manual control
 	m = Grid(10,10) #default to be overwritten
@@ -269,6 +277,7 @@ if args.repl: #manual control
 
 		#get and display next generation
 		if command == "next":
+			clear_frame()
 			m.next()
 			
 		#produce grid generations
@@ -321,6 +330,7 @@ if args.repl: #manual control
 				continue
 			
 			#user chose "begin"
+			clear_frame()
 			m.iterate(generations,display_all,frame_delay)
 			
 		
@@ -338,6 +348,8 @@ if args.repl: #manual control
 			if command == "load":
 				filename = input("Enter template file name: ")
 				m = Grid.template(filename)
+				
+				clear_frame()
 				m.display()
 			
 			#populate randomly or clean grid
@@ -351,6 +363,7 @@ if args.repl: #manual control
 					#generate random grid
 					m.populate()
 
+				clear_frame()
 				m.display()
 			
 			else:
@@ -375,6 +388,8 @@ if args.repl: #manual control
 			
 			#update cell in grid & display changes
 			m.matrix[x][y]['status'] = int(cell_state)
+			
+			clear_frame()
 			m.display()
 			
 		#close program		
