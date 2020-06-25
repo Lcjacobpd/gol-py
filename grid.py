@@ -14,7 +14,8 @@
 
 import random
 import csv
-
+import time
+from os import system
 
 # World space definition
 class Grid:
@@ -90,7 +91,7 @@ class Grid:
 	
 	
 	#DISPLAY SEVERAL GENERATIONS OF THE GRID
-	def iterate(self, generations, display_all = True):
+	def iterate(self, generations, display_all = True, frame_delay = 0):
 		#lifetime statistic variables
 		total_died = 0;
 		total_born = 0;
@@ -108,7 +109,11 @@ class Grid:
 		print()
 		
 		for i in range(generations - 1):
+			#delay
+			time.sleep(frame_delay)
 			
+			#clear grid for next generation
+			#if display_all:
 			
 			#create next generation according to the grid rules
 			subsequent_matrix = []
@@ -316,7 +321,7 @@ if args.repl: #manual control
 				continue
 			
 			#user chose "begin"
-			m.iterate(generations,display_all)
+			m.iterate(generations,display_all,frame_delay)
 			
 		
 		
