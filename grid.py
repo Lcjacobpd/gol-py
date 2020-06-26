@@ -184,7 +184,6 @@ class Grid:
 					print("---", end="")
 				print('-')
 
-			#display grid (starting with inital)
 			if display_all: self.display()
 			
 			#display generation statistics
@@ -194,6 +193,17 @@ class Grid:
 				print(f"       -{died:>3d} (died)")
 				print(f"After:  {self.census():3d} ({survived} survivors)")
 				print()	
+		
+		#display last generation if not all
+		if display_all == False: self.display()
+		
+		#display generation statistics
+		if display_all == False:
+			print(f"Before: {alive:>3}")
+			print(f"       +{born:>3d} (born)")
+			print(f"       -{died:>3d} (died)")
+			print(f"After:  {self.census():3d} ({survived} survivors)")
+			print()
 		
 		#display total lifetime statistics
 		if display_all:
@@ -205,17 +215,17 @@ class Grid:
 
 
 	#SKIP FORWARD N GENERATIONS
-	def advance(self, n, display=False):
+	def jump_to(self, n, display=False):
+		clear_frame()
 		if n > 1:
-			print(f"Skipping to generation {n}...")
-		self.iterate(n, display) #iterate showing only last generation
+			print(f"Skipping forward {n} generations...")
+		self.iterate(n + 1, display) #iterate showing only last generation
 		
 	
 	
 	#GO TO THE NEXT GENERATION
 	def next(self):
 		self.iterate(2, False)
-		self.display()
 		
 
 	#COUNT LIVNG CELLS IN GRIDSPACE
@@ -266,6 +276,7 @@ if args.repl: #manual control
 	while command != "stop":
 		print()
 		print("next  - show next generation")
+		print("jump  - skip to generation")
 		print("run   - iterate generations")
 		print("alter - change cell state")
 		print("reset - create new grid")
@@ -280,6 +291,11 @@ if args.repl: #manual control
 			clear_frame()
 			m.next()
 			
+		#skip to specific generation and display
+		if command == "jump":
+			i = input("\tjump forward: ")
+			m.jump_to(int(i))
+						
 		#produce grid generations
 		if command == "run":
 			#variables
