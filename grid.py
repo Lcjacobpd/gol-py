@@ -317,9 +317,9 @@ if args.repl: #manual control
 				
 				#modify frame delay
 				if command == "frame_delay":
-					frame_delay = int(input("\t\t(int)frame_delay: "))
-					if frame_delay < 1:
-						print("\t\tMinimum delay is 1")
+					frame_delay = float(input("\t\t(float)frame_delay: "))
+					if frame_delay < 0:
+						print("\t\tDelay must be greater than 0, defaulting to 1")
 						frame_delay = 1
 						
 				elif command == "generations":
