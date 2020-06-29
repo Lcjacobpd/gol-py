@@ -67,9 +67,12 @@ class Grid:
         return  preset
         
         
-    #LABEL GRID GENERATION
-    def label(self, generation):
-        print()
+    #GRID LABEL
+    def label(self, generation, generations=0):
+        if generations == 1: 
+            print("\n")
+            return #no lable for 'next'
+            
         print("Generation: \t", generation)
         for j in range(self.width):
             print("---", end="")
@@ -106,7 +109,7 @@ class Grid:
     
     
     #DISPLAY SEVERAL GENERATIONS OF THE GRID
-    def iterate(self, generations, display_all = True, frame_delay = 0):
+    def iterate(self, generations, display_all=True, frame_delay=0):
         #lifetime statistic variables
         total_died = 0;
         total_born = 0;
@@ -118,7 +121,7 @@ class Grid:
             print()
         
         #process grid generations
-        for i in range(generations - 1):
+        for i in range(generations):
             time.sleep(frame_delay) #apply delay
             
             #create next generation according to the grid rules
@@ -188,11 +191,16 @@ class Grid:
             #label generation & display generation statistics
             if display_all:
                 clear_frame()
-                self.label(i)
+                self.label(i+1)
                 self.display()
                 self.stats(living, births, deaths, survivors)
-                
-            if stale: #if still true, stop iterations
+            
+            #if stale stop iterations (not for 'next' command)
+            if stale:
+                clear_frame()
+                self.label(i+1, generations)
+                self.display()
+                print()
                 print("Grid is stagnant; stopping life cycle...")
                 return
                 
@@ -200,6 +208,7 @@ class Grid:
         #display last generation if none of the rest
         if display_all == False: 
             clear_frame()
+            print("\n")
             self.display()
             self.stats(living, births, deaths, survivors)
         
@@ -216,12 +225,12 @@ class Grid:
         clear_frame()
         if n > 1:
             print(f"Skipping forward {n} generations...")
-        self.iterate(n + 1, display) #iterate showing only last generation
+        self.iterate(n, display) #iterate showing only last generation
     
     
     #GO TO THE NEXT GENERATION
-    def next(self):
-        self.iterate(2, False)
+    def next(self,):
+        self.iterate(1, False) #1 step, don't display all
         
 
     #COUNT LIVNG CELLS IN GRIDSPACE
@@ -275,7 +284,6 @@ def manual_control(m):
 
         #get and display next generation
         if command == "next":
-            clear_frame()
             m.next()
             
         #skip to specific generation and display
@@ -351,6 +359,7 @@ def manual_control(m):
                 m = Grid.template(filename)
                 
                 clear_frame()
+                print("\n")
                 m.display()
             
             #populate randomly or clean grid
@@ -365,6 +374,7 @@ def manual_control(m):
                     m.populate()
 
                 clear_frame()
+                print("\n")
                 m.display()
             
             else:
@@ -421,6 +431,7 @@ args = parser.parse_args()
 
 #process user parameters
 if args.repl: #manual control
+    clear_frame()
     m = Grid(10,10) #default to be overwritten
 
     #check for template
@@ -428,8 +439,7 @@ if args.repl: #manual control
         m = Grid.template(args.template)
     else:
         m = Grid(args.w, args.h)    
-
-    print("Enabling REPL control...")
+    print("\n")
     m.display()
     
     #runtime loop
