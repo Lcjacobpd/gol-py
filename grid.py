@@ -132,6 +132,8 @@ class Grid:
             deaths    = 0
             survivors = 0
 
+            stale = True
+            
             for x in range(self.width):
                 sub_column = []
                 for y in range(self.height):
@@ -158,6 +160,7 @@ class Grid:
                             sub_column.append({'x':x, 'y':y, 'status':0})
                             deaths += 1
                             total_died += 1
+                            stale = False
 
                         elif neighbor_count < 4: #rule 2
                             sub_column.append({'x':x, 'y':y, 'status':1})
@@ -167,15 +170,17 @@ class Grid:
                             sub_column.append({'x':x, 'y':y, 'status':0})
                             deaths += 1
                             total_died += 1
+                            stale = False
 
                     else: #dead cell
                         if neighbor_count == 3: #rule 4
                             sub_column.append({'x':x, 'y':y, 'status':1})
                             births += 1
                             total_born += 1
+                            stale = False
 
                         else: #default = dead
-                            sub_column.append({'x':x, 'y':y, 'status':0})            
+                            sub_column.append({'x':x, 'y':y, 'status':0})  
     
                 subsequent_matrix.append(sub_column)
             self.matrix = subsequent_matrix #update matrix
@@ -186,6 +191,10 @@ class Grid:
                 self.label(i)
                 self.display()
                 self.stats(living, births, deaths, survivors)
+                
+            if stale: #if still true, stop iterations
+                print("Grid is stagnant; stopping life cycle...")
+                return
                 
         
         #display last generation if none of the rest
@@ -338,7 +347,7 @@ def manual_control(m):
             
             #load template file
             if command == "load":
-                filename = input("Enter template file name: ")
+                filename = input("\tEnter template file name: ")
                 m = Grid.template(filename)
                 
                 clear_frame()
