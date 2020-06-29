@@ -222,6 +222,20 @@ class Grid:
             for y in range(self.height):
                 count += self.matrix[x][y]['status'] #alive = 1
         return count
+        
+
+    #OUTPUT GRID TO TEMPLATE FILE
+    def save(self, filename):
+        f = open(filename, "wt")
+        
+        #grid dimensions
+        f.write(f"{self.width},{self.height}\n")
+        
+        #grid data
+        for x in range(self.width):
+            for y in range(self.height):
+                f.write(str(self.matrix[x][y]['status']))
+            f.write('\n')
 
 
 #END OF CLASS
@@ -370,6 +384,12 @@ def manual_control(m):
             clear_frame()
             m.display()
             
+        #output grid to file
+        elif command == "save":
+            print()
+            filename = input("\tEnter output filename: ")
+            m.save(filename)
+        
         #close program        
         elif command == "exit": 
             print("Exiting...")
