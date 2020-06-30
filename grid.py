@@ -38,7 +38,7 @@ class Grid:
     def populate(self):
         for x in range(self.width):
             for y in range(self.height):
-                self.matrix[x][y]['status'] = random.choice([1,0]) 
+                self.matrix[x][y]['status'] = random.choice([1,0])
     
 
     #READ TEMPLATE FROM FILE
@@ -58,7 +58,7 @@ class Grid:
 
         xpos = 0 #x position marker
         ypos = 0
-        for row in rows:
+        for row in rows: #convert document lines to grid rows
             xpos = 0
             for char in row[0]:
                 preset.matrix[ypos][xpos]['status'] = int(char)
@@ -183,7 +183,7 @@ class Grid:
                             stale = False
 
                         else: #default = dead
-                            sub_column.append({'x':x, 'y':y, 'status':0})  
+                            sub_column.append({'x':x, 'y':y, 'status':0})
     
                 subsequent_matrix.append(sub_column)
             self.matrix = subsequent_matrix #update matrix
@@ -289,14 +289,16 @@ def manual_control(m):
         #skip to specific generation and display
         if command == "jump":
             i = input("\tjump forward: ")
+            if i < 1:
+                print("jump must be given a positive non-zero integer")
+                continue
             m.jump_to(int(i))
                         
         #produce grid generations
         if command == "run":
             #variables
             frame_delay = 1
-            generations = 5
-            display_all = True
+            generations = 50
         
             #grid iteration control loop
             while command != "begin":
@@ -304,7 +306,6 @@ def manual_control(m):
                 print("\tenter variable name to modify")
                 print(f"\t[frame_delay: {frame_delay}]")
                 print(f"\t[generations: {generations}]")
-                print(f"\t[display_all: {display_all}]")
                 print()
                 print("\tbegin")
                 print("\t----------")
@@ -316,19 +317,15 @@ def manual_control(m):
                     if frame_delay < 0:
                         print("\t\tDelay must be greater than 0, defaulting to 1")
                         frame_delay = 1
-                        
+                
+                #modify the number of generations to calculate
                 elif command == "generations":
                     generations = int(input("\t\t(int)generations: "))
                     if generations < 1:
                         print("\t\tMinimum count is 1")
                         generations = 1
-                        
-                elif command == "display_all":
-                    display = input("\t\t(bool)display_all: ")
-                    if display == "True":
-                        display_all = True
-                    else: display_all = False
-                    
+                
+                #begin calculating generations
                 elif command == "begin":
                     continue
                     
@@ -342,9 +339,9 @@ def manual_control(m):
             
             #user chose "begin"
             clear_frame()
-            m.iterate(generations,display_all,frame_delay)
+            m.iterate(generations, True, frame_delay)
             
-        #reset/create new grid        
+        #reset/create new grid
         elif command == "reset":
             print()
             print("\tload   - load template file")
@@ -357,7 +354,6 @@ def manual_control(m):
             if command == "load":
                 filename = input("\tEnter template file name: ")
                 m = Grid.template(filename)
-                
                 clear_frame()
                 print("\n")
                 m.display()
@@ -379,7 +375,7 @@ def manual_control(m):
             
             else:
                 print("\tUnknown command: cancelling")
-                    
+                
         #change cell state
         elif command == "alter":
             #get cell to be modified
@@ -390,7 +386,7 @@ def manual_control(m):
             #ensure position is valid
             while x < 0 or x >= m.width or y < 0 or y >= m.height: 
                 print("\tPosition is out of bounds")
-                cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')    
+                cell_position = input(u"\tCell position (\u001b[36my\u001b[0m" + ',' + u"\u001b[31mx\u001b[0m): ").split(',')
                 x = int(cell_position[0])
                 y = int(cell_position[1])
                 
@@ -409,8 +405,8 @@ def manual_control(m):
             filename = input("\tEnter output filename: ")
             m.save(filename)
         
-        #close program        
-        elif command == "exit": 
+        #close program
+        elif command == "exit":
             print("Exiting...")
             break
 
@@ -419,8 +415,8 @@ def manual_control(m):
 #-------------------------------------------------------------------
 
 
-import argparse
 #setup parser
+import argparse
 parser = argparse.ArgumentParser(description="get user input")
 parser.add_argument("w", type=int)
 parser.add_argument("h", type=int)
@@ -429,16 +425,22 @@ parser.add_argument("--gen", type=int)
 parser.add_argument("--repl")
 args = parser.parse_args()
 
-#process user parameters
+#RENDER SINGLE GRID OR SEVERAL GENERATIONS FROM CONSOLE ARGS
+def argparse_render(grid, args):
+    if args.gen: #call iterate if necessary
+        print(f"Showing {args.gen} generations...")
+        grid.iterate(args.gen, True, 1) #generations, display_all, frame_delay
+    else:
+        grid.display()
+
+#PROCESS USER PARAMETERS
 if args.repl: #manual control
     clear_frame()
     m = Grid(10,10) #default to be overwritten
 
     #check for template
-    if args.template:
-        m = Grid.template(args.template)
-    else:
-        m = Grid(args.w, args.h)    
+    if args.template: m = Grid.template(args.template)
+    else: m = Grid(args.w, args.h) #generate blank with dimensions otherwise
     print("\n")
     m.display()
     
@@ -447,23 +449,13 @@ if args.repl: #manual control
         
 elif args.template: #if template is specified, disregard dimensions
     m = Grid.template(args.template)
-    
-    if args.gen: #call iterate if necessary
-        print(f"Showing {args.gen} generations...")
-        m.iterate(args.gen)
-    else:
-        m.display()
+    argparse_render(m, args) #render single grid or several generations
 
 elif args.w and args.h:
     print("No template specified, assuming random population")
     m = Grid(args.w, args.h)
     m.populate()
-
-    if args.gen:
-        print(f"Showing {args.gen} generations...")
-        m.iterate(args.gen)
-    else:
-        m.display()
+    argparse_render(m, args)
 
 
 
