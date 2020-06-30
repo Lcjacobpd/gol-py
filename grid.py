@@ -229,7 +229,7 @@ class Grid:
     
     
     #GO TO THE NEXT GENERATION
-    def next(self,):
+    def next(self):
         self.iterate(1, False) #1 step, don't display all
         
 
