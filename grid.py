@@ -16,7 +16,7 @@ import random
 import csv
 import time
 from os import system
-import collections
+
 
 #display utilities
 RED    = "\u001b[31m"
@@ -47,6 +47,7 @@ class Grid:
                 column.append({'x': x, 'y': y, 'status': DEAD})
             self.matrix.append(column)
 
+
     def populate(self):
         '''
         Randomly populates the cells of a grid (none)
@@ -54,6 +55,7 @@ class Grid:
         for x in range(self.width):
             for y in range(self.height):
                 self.matrix[x][y]['status'] = random.choice([ALIVE, DEAD])
+
 
     def load(filename):
         '''
@@ -137,7 +139,6 @@ class Grid:
         return count
 
 
-
     def check_neighbors(self, x, y):
         '''
         Counts the number of living neighbors (x, y positions)
@@ -162,10 +163,10 @@ class Grid:
         return neighbor_count
 
 
-    '''
-    Prints the statistics of the current grid configuration (Living, Born, Deaths, Survivors)
-    '''
     def stats(self, living, births, deaths, survivors):
+        '''
+        Prints stats of the current grid (Living, Born, Deaths, Survivors)
+        '''
         print(f"Before: {living:>3}")
         print(f"       +{births:>3d} (born)")
         print(f"       -{deaths:>3d} (died)")
@@ -173,10 +174,10 @@ class Grid:
         print()
 
 
-    '''
-    Display several generations of the grid
-    '''
     def iterate(self, generations, display_all=True, frame_delay=1):
+        '''
+        Display several generations of the grid
+        '''
         #lifetime statistics variables
         total_died = 0;
         total_born = 0;
@@ -189,7 +190,8 @@ class Grid:
 
         #process grid generations
         for i in range(generations):
-            time.sleep(frame_delay) #apply delay
+            if display_all:
+                time.sleep(frame_delay) #apply delay
 
             #create next generation according to the grid rules
             subsequent_matrix = []
