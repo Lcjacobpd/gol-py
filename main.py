@@ -3,25 +3,37 @@ from grid import Grid
 from os import system
 
 #DISPLAY UTILITIES
-#clear display for next frame
-def clear_frame():
+def clear():
     _ = system('clear')
     
-COLOR_RED    = "\u001b[31m"
-COLOR_CYAN   = "\u001b[36m"
-COLOR_YELLOW = "\u001b[33m"
-COLOR_GRAY   = "\u001b[1;30m"
-COLOR_WHITE  = "\u001b[0m"
+RED    = "\u001b[31m"
+CYAN   = "\u001b[36m"
+YELLOW = "\u001b[33m"
+GRAY   = "\u001b[1;30m"
+WHITE  = "\u001b[0m"
 
 
 #setup parser
 import argparse
-parser = argparse.ArgumentParser(description="Create, view and manage grids in Conway's Game of lifes")
-parser.add_argument("w", type=int)
-parser.add_argument("h", type=int)
-parser.add_argument("--template")
+parser = argparse.ArgumentParser(
+	description="Create, view and manage grids in Conway's Game of lifes"
+)
+parser.add_argument(
+    "--width", 
+    type=int,
+    default=20,
+)
+parser.add_argument(
+    "--height", 
+    type=int,
+    default=20,
+)
+parser.add_argument("--load")
 parser.add_argument("--gen", type=int)
-parser.add_argument("--repl")
+parser.add_argument(
+    "--repl",
+    action='store_true'
+)
 args = parser.parse_args()
 
 
@@ -88,7 +100,7 @@ def manual_control(m):
                 continue
             
             #user chose "begin"
-            clear_frame()
+            clear()
             m.iterate(generations, True, frame_delay)
             
         #reset/create new grid
@@ -103,14 +115,14 @@ def manual_control(m):
             #load template file
             if command == "load":
                 filename = input("\tEnter template file name: ")
-                m = Grid.template(filename)
-                clear_frame()
+                m = Grid.load(filename)
+                clear()
                 print("\n")
                 m.display()
             
             #populate randomly or clean grid
             elif command == "random" or command == "clean":
-                dimensions = input("\tHeight, Width:").split(',')
+                dimensions = input("\tHeight, Width: ").split(',')
                 h = int(dimensions[0])
                 w = int(dimensions[1])
                 m = Grid(h, w) #clean grid
@@ -119,7 +131,7 @@ def manual_control(m):
                     #generate random grid
                     m.populate()
 
-                clear_frame()
+                clear()
                 print("\n")
                 m.display()
             
@@ -129,14 +141,14 @@ def manual_control(m):
         #change cell state
         elif command == "alter":
             #get cell to be modified
-            cell_position = input(F"\tCell position ({COLOR_CYAN}y{COLOR_WHITE},{COLOR_RED}x{COLOR_WHITE}): ").split(',')
+            cell_position = input(F"\tCell position ({CYAN}y{WHITE},{RED}x{WHITE}): ").split(',')
             x = int(cell_position[0])
             y = int(cell_position[1])
             
             #ensure position is valid
             while x < 0 or x >= m.width or y < 0 or y >= m.height: 
                 print("\tPosition is out of bounds")
-                cell_position = input(F"\tCell position ({COLOR_CYAN}y{COLOR_WHITE},{COLOR_RED}x{COLOR_WHITE}").split(',')
+                cell_position = input(F"\tCell position ({CYAN}y{WHITE},{RED}x{WHITE}").split(',')
                 x = int(cell_position[0])
                 y = int(cell_position[1])
                 
@@ -146,7 +158,7 @@ def manual_control(m):
             #update cell in grid & display changes
             m.matrix[x][y]['status'] = int(cell_state)
             
-            clear_frame()
+            clear()
             m.display()
             
         #output grid to file
@@ -175,25 +187,26 @@ def argparse_render(grid, args):
 
 #PROCESS USER PARAMETERS
 if args.repl: #manual control
-    clear_frame()
-    m = Grid(10,10) #default to be overwritten
+    clear()
+    m = Grid(20,20) #default to be overwritten
 
-    #check for template
-    if args.template: m = Grid.template(args.template)
-    else: m = Grid(args.w, args.h) #generate blank with dimensions otherwise
+    #check forload
+    if args.load: m = Grid.load(args.load)
+    else: m = Grid(args.height, args.width) #generate blank with dimensions otherwise
     print("\n")
     m.display()
     
     #runtime loop
     manual_control(m)
         
-elif args.template: #if template is specified, disregard dimensions
-    m = Grid.template(args.template)
+elif args.load: #if load is specified, disregard dimensions
+    m = Grid.load(args.load)
     argparse_render(m, args) #render single grid or several generations
 
-elif args.w and args.h:
-    print("No template specified, assuming random population")
-    m = Grid(args.w, args.h)
+elif args.width and args.height:
+    clear()
+    print("No load template specified, assuming random population")
+    m = Grid(args.height, args.width)
     m.populate()
     argparse_render(m, args)
 
