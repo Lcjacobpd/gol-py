@@ -76,12 +76,12 @@ class Grid:
             ypos = 0
 
             #convert document lines to grid rows
-            for row in rows: 
+            for row in rows:
                 xpos = 0
                 for char in row[0]:
                     preset.matrix[ypos][xpos]['status'] = int(char)
                     xpos += 1
-                ypos += 1 
+                ypos += 1
             return  preset
 
 
@@ -119,7 +119,7 @@ class Grid:
         for x in range(self.width):
             #row numbers
             print(CYAN + F"{x:2d}" + WHITE, end="")
-            
+
             for y in range(self.height):
                 if self.matrix[x][y]['status'] == ALIVE:
                     print(YELLOW + " ■ ", end=WHITE)
@@ -255,7 +255,7 @@ class Grid:
                 return
 
         #display last generation if none of the rest
-        if display_all == False: 
+        if display_all == False:
             clear()
             print("\n")
             self.display()
