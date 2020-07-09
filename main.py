@@ -1,7 +1,7 @@
 '''
 Facilitate user control of the Grid class
 '''
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 import argparse
 import time
 from os import system
@@ -49,7 +49,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def warning(name, minimum, default):
+def warning(name: str, minimum: int, default: int):
     '''
     Create generic warning
     '''
@@ -59,7 +59,7 @@ def warning(name, minimum, default):
     time.sleep(3)
     print('\n')
     clear()
-    mat.display()
+    grid.display()
     return default
 
 
@@ -147,7 +147,7 @@ def resetconfig():
             return {'type': command, 'size': dimensions}
 
 
-def alterconfig(grid):
+def alterconfig(grid: Grid):
     '''
     retreive and verify changes to cells in the matrix (grid instance)
     '''
@@ -190,7 +190,7 @@ def alterconfig(grid):
 
 
 # RUNTIME ENVIRONMENT
-def manual_control(grid):
+def manual_control(grid: Grid):
     '''
     REPL control of the current gridspace (grid instance)
     '''
@@ -260,7 +260,7 @@ def manual_control(grid):
 
 
 # RENDER SINGLE GRID OR SEVERAL GENERATIONS FROM CONSOLE ARGS
-def argparse_render(grid, args):
+def argparse_render(grid: Grid, args):
     '''
     render one or more generations from argparse
     '''
@@ -275,28 +275,28 @@ def argparse_render(grid, args):
 # PROCESS USER PARAMETERS
 if args.repl:  # manual control
     clear()
-    mat = Grid(20, 20)  # default to be overwritten
+    grid = Grid(20, 20)  # default to be overwritten
 
     # check for template
     if args.load:
-        mat = Grid.load(args.load)
+        grid = Grid.load(args.load)
     else:
         # generate blank with dimensions otherwise
-        mat = Grid(args.height, args.width)
+        grid = Grid(args.height, args.width)
     print('\n')
-    mat.display()
+    grid.display()
 
     # runtime loop
-    manual_control(mat)
+    manual_control(grid)
 
 elif args.load:  # if load is specified, disregard dimensions
-    mat = Grid.load(args.load)
-    argparse_render(mat, args)  # render single grid or several generations
+    grid = Grid.load(args.load)
+    argparse_render(grid, args)  # render single grid or several generations
 
 elif args.width and args.height:
     clear()
     print('No load template specified, ' +
           'assuming random population')
-    mat = Grid(args.height, args.width)
-    mat.populate()
-    argparse_render(mat, args)
+    grid = Grid(args.height, args.width)
+    grid.populate()
+    argparse_render(grid, args)

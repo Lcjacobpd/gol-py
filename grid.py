@@ -26,6 +26,9 @@ WHITE = '\u001b[0m'
 
 
 def clear():
+    '''
+    reset terminal screen space
+    '''
     _ = system('clear')
 
 
@@ -34,7 +37,7 @@ DEAD = 0
 
 
 class Grid:
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
         '''
         Constructs an instance of a gridspace (width, height)
         '''
@@ -57,7 +60,8 @@ class Grid:
             for y in range(self.height):
                 self.matrix[x][y]['status'] = random.choice([ALIVE, DEAD])
 
-    def load(filename):
+    @staticmethod
+    def load(filename: str):
         '''
         Create datagrid from template file (filename)
         '''
@@ -84,7 +88,7 @@ class Grid:
                 ypos += 1
             return preset
 
-    def save(self, filename):
+    def save(self, filename: str):
         '''
         Writes the current grid data to a text file (filename)
         '''
@@ -97,7 +101,7 @@ class Grid:
                     f.write(str(self.matrix[x][y]['status']))
                 f.write('\n')
 
-    def label(self, i, generations):
+    def label(self, i: int, generations: int):
         '''
         Creates a label for the grid display in the terminal (generation)
         '''
@@ -135,7 +139,7 @@ class Grid:
                 count += self.matrix[x][y]['status']  # alive = 1
         return count
 
-    def check_neighbors(self, x, y):
+    def check_neighbors(self, x: int, y: int):
         '''
         Counts the number of living neighbors (x, y positions)
         '''
@@ -164,7 +168,8 @@ class Grid:
 
         return neighbor_count
 
-    def stats(self, living, births, deaths, survivors):
+    def stats(self, living: int, births: int,
+              deaths: int, survivors: int):
         '''
         Prints stats of the current grid (Living, Born, Deaths, Survivors)
         '''
@@ -174,7 +179,8 @@ class Grid:
         print(f'After:  {self.census():3d} ({survivors} survivors)')
         print()
 
-    def iterate(self, generations, display_all=True, frame_delay=1):
+    def iterate(self, generations: int, display_all=True,
+                frame_delay=1.0):
         '''
         Display several generations of the grid
         '''
