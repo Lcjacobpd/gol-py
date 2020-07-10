@@ -4,12 +4,14 @@ Facilitate user control of the Grid class
 # !/usr/bin/env python3
 import argparse
 import time
+import typing
+import collections
 from os import system
 from grid import Grid
 
 
 # DISPLAY UTILITIES
-def clear():
+def clear() -> None:
     '''
     reset terminal screen space
     '''
@@ -49,7 +51,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def warning(name: str, minimum: int, default: int):
+def warning(name: str, minimum: int, default: int) -> int:
     '''
     Create generic warning
     '''
@@ -63,11 +65,16 @@ def warning(name: str, minimum: int, default: int):
     return default
 
 
-def iterateconfig():
+iConfig = collections.namedtuple('iConfig', [
+    'delay',
+    'generations'
+])
+
+def iterateconfig() -> 'iConfig':
     '''
     retrieve desired generation settings from user (none)
     '''
-    delay = 1
+    delay = 1.0
     generations = 50
     command = ''
 
@@ -83,12 +90,12 @@ def iterateconfig():
 
         if command == '..':  # cancel
             clear()
-            return {'delay': -1, 'generations': -1}
+            return iConfig(-1, -1)
 
         if command == 'delay':
             delay = float(input('\t\t(float) set delay: '))
             if delay <= 0:
-                delay = warning('delay', 0, 1)
+                delay = float(warning('delay', 0, 1))
 
         elif command == 'generations':
             generations = int(input('\t\t(int) set generations: '))
@@ -97,10 +104,18 @@ def iterateconfig():
 
         if command == 'begin':
             clear()
-            return {'delay': delay, 'generations': generations}
+            return iConfig(float(delay), generations)
+    return iConfig(float(delay), generations)
 
 
-def resetconfig():
+rConfig = collections.namedtuple('rConfig', [
+    'type',
+    'source',
+    'height',
+    'width'
+])
+
+def resetconfig() -> 'rConfig':
     '''
     get specific instructions for resetting gridspace
     '''
@@ -118,36 +133,38 @@ def resetconfig():
 
         if command == '..':  # cancel
             clear()
-            return {'type': 'none', 'size': (-1, -1)}
+            return rConfig('none', 'none', -1, -1)
 
         if command == 'load':
             filename = input('\tname of template file: ')
-            return {'type': 'load', 'source': filename}
+            return rConfig('load', filename, -1, -1)
 
         if command in ('random', 'clean'):
-            dimensions = input(CYAN + '\theight' + WHITE + ',' +
+            size = input(CYAN + '\theight' + WHITE + ',' +
                                RED + 'width' + WHITE + ': ')
-            dimensions = dimensions.split(',')
+            dimensions = size.split(',')
 
             try:
-                dimensions[0] = int(dimensions[0])
-                dimensions[1] = int(dimensions[1])
+                height = int(dimensions[0])
+                width = int(dimensions[1])
             except Exception:
                 print('\t\t' + YELLOW + '[!] ' + WHITE, end='')
                 print('dimensions must be comma separated integers')
                 print('\t\tdefaulting to 10,10...')
-                dimensions = [10, 10]
+                height = 10
+                width = 10
                 time.sleep(3)
 
-            if dimensions[0] < 5:
-                dimensions[0] = warning('height', 4, 5)
-            if dimensions[1] < 5:
-                dimensions[1] = warning('width', 4, 5)
+            if height < 5:
+                height = warning('height', 4, 5)
+            if width < 5:
+                width = warning('width', 4, 5)
 
-            return {'type': command, 'size': dimensions}
+            return rConfig(command, 'none', height, width)
+    return rConfig('none', 'none', -1, -1)  # error catch
 
 
-def alterconfig(grid: Grid):
+def alterconfig(grid: Grid) -> None:
     '''
     retreive and verify changes to cells in the matrix (grid instance)
     '''
@@ -190,7 +207,7 @@ def alterconfig(grid: Grid):
 
 
 # RUNTIME ENVIRONMENT
-def manual_control(grid: Grid):
+def manual_control(grid: Grid) -> None:
     '''
     REPL control of the current gridspace (grid instance)
     '''
@@ -212,28 +229,28 @@ def manual_control(grid: Grid):
             grid.next()
 
         elif command == 'run':
-            settings = iterateconfig()
-            if settings['delay'] == -1:
+            iSettings = iterateconfig()
+            if iSettings[0] == -1:
                 print('\n')
                 grid.display()
                 continue  # catch run cancel
             # else
-            grid.iterate(settings['generations'], True, settings['delay'])
+            grid.iterate(iSettings[1], True, iSettings[0])
 
         elif command == 'reset':
-            settings = resetconfig()
-            if settings['type'] == 'none':
+            rSettings = resetconfig()
+            if rSettings[0] == 'none':
                 print('\n')
                 grid.display()
                 continue  # catch reset cancel
-            if settings['type'] == 'load':
-                grid = Grid.load(settings['source'])
+            if rSettings[0] == 'load':
+                grid = Grid.load(rSettings[1])
             else:
-                height = settings['size'][0]
-                width = settings['size'][1]
+                height = rSettings[2]
+                width = rSettings[3]
                 grid = Grid(height, width)
 
-                if settings['type'] == 'random':
+                if rSettings[0] == 'random':
                     grid.populate()
             clear()
             print('\n')
@@ -260,7 +277,7 @@ def manual_control(grid: Grid):
 
 
 # RENDER SINGLE GRID OR SEVERAL GENERATIONS FROM CONSOLE ARGS
-def argparse_render(grid: Grid, args):
+def argparse_render(grid: Grid, args: argparse.Namespace) -> None:
     '''
     render one or more generations from argparse
     '''

@@ -25,7 +25,7 @@ GRAY = '\u001b[1;30m'
 WHITE = '\u001b[0m'
 
 
-def clear():
+def clear() -> None:
     '''
     reset terminal screen space
     '''
@@ -37,7 +37,7 @@ DEAD = 0
 
 
 class Grid:
-    def __init__(self, width: int, height: int):
+    def __init__(self, width: int, height: int) -> None:
         '''
         Constructs an instance of a gridspace (width, height)
         '''
@@ -52,7 +52,7 @@ class Grid:
                 column.append({'x': x, 'y': y, 'status': DEAD})
             self.matrix.append(column)
 
-    def populate(self):
+    def populate(self) -> None:
         '''
         Randomly populates the cells of a grid (none)
         '''
@@ -61,7 +61,7 @@ class Grid:
                 self.matrix[x][y]['status'] = random.choice([ALIVE, DEAD])
 
     @staticmethod
-    def load(filename: str):
+    def load(filename: str) -> 'Grid':
         '''
         Create datagrid from template file (filename)
         '''
@@ -88,7 +88,7 @@ class Grid:
                 ypos += 1
             return preset
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         '''
         Writes the current grid data to a text file (filename)
         '''
@@ -101,14 +101,14 @@ class Grid:
                     f.write(str(self.matrix[x][y]['status']))
                 f.write('\n')
 
-    def label(self, i: int, generations: int):
+    def label(self, i: int, generations: int) -> None:
         '''
         Creates a label for the grid display in the terminal (generation)
         '''
         print(F'Generation: \t{i}/{generations}')
         print('---' * self.height, end='-\n')
 
-    def display(self):
+    def display(self) -> None:
         '''
         Displays the current grid configuration (none)
         '''
@@ -129,7 +129,7 @@ class Grid:
                     print(GRAY + ' □ ', end=WHITE)
             print()
 
-    def census(self):
+    def census(self) -> int:
         '''
         Counts the number of currently living cells in the grid (None)
         '''
@@ -139,7 +139,7 @@ class Grid:
                 count += self.matrix[x][y]['status']  # alive = 1
         return count
 
-    def check_neighbors(self, x: int, y: int):
+    def check_neighbors(self, x: int, y: int) -> int:
         '''
         Counts the number of living neighbors (x, y positions)
         '''
@@ -169,7 +169,7 @@ class Grid:
         return neighbor_count
 
     def stats(self, living: int, births: int,
-              deaths: int, survivors: int):
+              deaths: int, survivors: int) -> None:
         '''
         Prints stats of the current grid (Living, Born, Deaths, Survivors)
         '''
@@ -179,8 +179,8 @@ class Grid:
         print(f'After:  {self.census():3d} ({survivors} survivors)')
         print()
 
-    def iterate(self, generations: int, display_all=True,
-                frame_delay=1.0):
+    def iterate(self, generations: int, display_all: bool=True,
+                frame_delay: float=1.0) -> None:
         '''
         Display several generations of the grid
         '''
@@ -275,7 +275,7 @@ class Grid:
             print(f'died:     {total_died:>3d}')
             print()
 
-    def next(self):
+    def next(self) -> None:
         '''
         Shows the next generation of the grid (None)
         '''
