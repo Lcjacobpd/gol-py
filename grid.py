@@ -11,10 +11,15 @@
 #    2. Any live cell with 2-3 live neighbors lives on to the next generation
 #    3. Any live cell with more than 3 live neighbors dies
 #    4. Any dead cell with 3 live neighbors becomes alive
+'''
+Worldspace definitions for implimentation of Conway's Game of Life
+'''
 
 import random
 import csv
 import time
+import typing
+import collections
 from os import system
 
 # display utilities
@@ -35,8 +40,10 @@ def clear() -> None:
 ALIVE = 1
 DEAD = 0
 
-
 class Grid:
+    '''
+    contains the matrix of cells and its dimensions
+    '''
     def __init__(self, width: int, height: int) -> None:
         '''
         Constructs an instance of a gridspace (width, height)
@@ -46,36 +53,37 @@ class Grid:
         self.matrix = []
 
         # each cell has x, y, status (0 = dead, 1 = alive)
-        for x in range(width):
+        for xpos in range(width):
             column = []
-            for y in range(height):
-                column.append({'x': x, 'y': y, 'status': DEAD})
+            for ypos in range(height):
+                column.append({'x': xpos, 'y': ypos, 'status': DEAD})
             self.matrix.append(column)
 
     def populate(self) -> None:
         '''
         Randomly populates the cells of a grid (none)
         '''
-        for x in range(self.width):
-            for y in range(self.height):
-                self.matrix[x][y]['status'] = random.choice([ALIVE, DEAD])
+        for xpos in range(self.width):
+            for ypos in range(self.height):
+                status = random.choice([ALIVE, DEAD])
+                self.matrix[xpos][ypos]['status'] = status
 
     @staticmethod
     def load(filename: str) -> 'Grid':
         '''
         Create datagrid from template file (filename)
         '''
-        with open(filename, 'rt') as f:
-            rows = csv.reader(f)
+        with open(filename, 'rt') as infile:
+            rows = csv.reader(infile)
             header = next(rows)  # header contains grid dimmensions
 
             print()
             print(f'Reading {filename} with dimensions:', header)
-            w = int(header[0])
-            h = int(header[1])
+            width = int(header[0])
+            height = int(header[1])
 
             # create new grid to populate
-            preset = Grid(w, h)
+            preset = Grid(width, height)
             xpos = 0
             ypos = 0
 
@@ -92,20 +100,20 @@ class Grid:
         '''
         Writes the current grid data to a text file (filename)
         '''
-        with open(filename, 'wt') as f:
+        with open(filename, 'wt') as outfile:
             # place grid dimensions in header
-            f.write(f'{self.width},{self.height}\n')
+            outfile.write(f'{self.width},{self.height}\n')
 
-            for x in range(self.width):
-                for y in range(self.height):
-                    f.write(str(self.matrix[x][y]['status']))
-                f.write('\n')
+            for xpos in range(self.width):
+                for ypos in range(self.height):
+                    outfile.write(str(self.matrix[xpos][ypos]['status']))
+                outfile.write('\n')
 
-    def label(self, i: int, generations: int) -> None:
+    def label(self, iteration: int, generations: int) -> None:
         '''
         Creates a label for the grid display in the terminal (generation)
         '''
-        print(F'Generation: \t{i}/{generations}')
+        print(F'Generation: \t{iteration}/{generations}')
         print('---' * self.height, end='-\n')
 
     def display(self) -> None:
@@ -114,16 +122,16 @@ class Grid:
         '''
         # column numbers
         print(RED, end='  ')
-        for x in range(self.height):
-            print(f'{x:2d}', end=' ')
+        for xpos in range(self.height):
+            print(f'{xpos:2d}', end=' ')
         print(WHITE)
 
-        for x in range(self.width):
+        for xpos in range(self.width):
             # row numbers
-            print(CYAN + F'{x:2d}' + WHITE, end='')
+            print(CYAN + F'{xpos:2d}' + WHITE, end='')
 
-            for y in range(self.height):
-                if self.matrix[x][y]['status'] == ALIVE:
+            for ypos in range(self.height):
+                if self.matrix[xpos][ypos]['status'] == ALIVE:
                     print(YELLOW + ' ■ ', end=WHITE)
                 else:
                     print(GRAY + ' □ ', end=WHITE)
@@ -134,53 +142,57 @@ class Grid:
         Counts the number of currently living cells in the grid (None)
         '''
         count = 0
-        for x in range(self.width):
-            for y in range(self.height):
-                count += self.matrix[x][y]['status']  # alive = 1
+        for xpos in range(self.width):
+            for ypos in range(self.height):
+                count += self.matrix[xpos][ypos]['status']  # alive = 1
         return count
 
-    def check_neighbors(self, x: int, y: int) -> int:
+    def check_neighbors(self, xpos: int, ypos: int) -> int:
         '''
         Counts the number of living neighbors (x, y positions)
         '''
         neighbor_count = 0
-        h = self.height - 1
-        w = self.width - 1
+        height = self.height - 1
+        width = self.width - 1
+        left = xpos - 1
+        right = xpos + 1
+        down = ypos - 1
+        up = ypos + 1
 
-        if x > 0:
-            neighbor_count += self.matrix[x-1][y]['status']  # alive = 1
-            if y > 0:
-                neighbor_count += self.matrix[x-1][y-1]['status']
-            if y < h:
-                neighbor_count += self.matrix[x-1][y+1]['status']
+        if xpos > 0:
+            neighbor_count += self.matrix[left][ypos]['status']
+            if ypos > 0:
+                neighbor_count += self.matrix[left][down]['status']
+            if ypos < height:
+                neighbor_count += self.matrix[left][up]['status']
 
-        if x < w:
-            neighbor_count += self.matrix[x+1][y]['status']
-            if y > 0:
-                neighbor_count += self.matrix[x+1][y-1]['status']
-            if y < h:
-                neighbor_count += self.matrix[x+1][y+1]['status']
+        if xpos < width:
+            neighbor_count += self.matrix[right][ypos]['status']
+            if ypos > 0:
+                neighbor_count += self.matrix[right][down]['status']
+            if ypos < height:
+                neighbor_count += self.matrix[right][up]['status']
 
-        if y > 0:
-            neighbor_count += self.matrix[x][y-1]['status']
-        if y < h:
-            neighbor_count += self.matrix[x][y+1]['status']
+        if ypos > 0:
+            neighbor_count += self.matrix[xpos][down]['status']
+        if ypos < height:
+            neighbor_count += self.matrix[xpos][up]['status']
 
         return neighbor_count
 
-    def stats(self, living: int, births: int,
-              deaths: int, survivors: int) -> None:
+
+    def stats(self, stats: dict) -> None:
         '''
         Prints stats of the current grid (Living, Born, Deaths, Survivors)
         '''
-        print(f'Before: {living:>3}')
-        print(f'       +{births:>3d} (born)')
-        print(f'       -{deaths:>3d} (died)')
-        print(f'After:  {self.census():3d} ({survivors} survivors)')
+        print(f'Before: {stats["living"]:>3}')
+        print(f'       +{stats["born"]:>3d} (born)')
+        print(f'       -{stats["died"]:>3d} (died)')
+        print(f'After:  {self.census():3d} ({stats["survivors"]} survivors)')
         print()
 
-    def iterate(self, generations: int, display_all: bool=True,
-                frame_delay: float=1.0) -> None:
+    def iterate(self, generations: int, display_all: bool = True,
+                frame_delay: float = 1.0) -> None:
         '''
         Display several generations of the grid
         '''
@@ -203,46 +215,68 @@ class Grid:
             subsequent_matrix = []
 
             # generation statistics
-            living = self.census()
-            births = 0
-            deaths = 0
-            survivors = 0
+            stats = {
+                'living': self.census(),
+                'born': 0,
+                'died': 0,
+                'survivors': 0
+            }
             stale = True
 
-            for x in range(self.width):
+            for xpos in range(self.width):
                 column = []
-                for y in range(self.height):
-                    cell = self.matrix[x][y]
+                for ypos in range(self.height):
+                    cell = self.matrix[xpos][ypos]
 
-                    neighbor_count = self.check_neighbors(x, y)
+                    neighbor_count = self.check_neighbors(xpos, ypos)
 
                     # check grid rules
                     if cell['status'] == ALIVE:
                         if neighbor_count < 2:  # rule 1
-                            column.append({'x': x,  'y': y, 'status': DEAD})
-                            deaths += 1
+                            column.append({
+                                'x': xpos,
+                                'y': ypos,
+                                'status': DEAD
+                            })
+                            stats['died'] += 1
                             total_died += 1
                             stale = False
 
                         elif neighbor_count < 4:  # rule 2
-                            column.append({'x': x,  'y': y, 'status': ALIVE})
-                            survivors += 1
+                            column.append({
+                                'x': xpos,
+                                'y': ypos,
+                                'status': ALIVE
+                            })
+                            stats['survivors'] += 1
 
                         elif neighbor_count > 3:  # rule 3
-                            column.append({'x': x,  'y': y, 'status': DEAD})
-                            deaths += 1
+                            column.append({
+                                'x': xpos,
+                                'y': ypos,
+                                'status': DEAD
+                            })
+                            stats['died'] += 1
                             total_died += 1
                             stale = False
 
                     else:  # dead cell
                         if neighbor_count == 3:  # rule 4
-                            column.append({'x': x,  'y': y, 'status': ALIVE})
-                            births += 1
+                            column.append({
+                                'x': xpos,
+                                'y': ypos,
+                                'status': ALIVE
+                            })
+                            stats['born'] += 1
                             total_born += 1
                             stale = False
 
                         else:  # default = dead
-                            column.append({'x': x,  'y': y, 'status': DEAD})
+                            column.append({
+                                'x': xpos,
+                                'y': ypos,
+                                'status': DEAD
+                            })
 
                 subsequent_matrix.append(column)
             self.matrix = subsequent_matrix  # update matrix
@@ -252,7 +286,7 @@ class Grid:
                 clear()
                 self.label(i+1, generations)
                 self.display()
-                self.stats(living, births, deaths, survivors)
+                self.stats(stats)
 
             # if stale stop iterations (not for 'next' command)
             if stale:
@@ -265,7 +299,7 @@ class Grid:
             clear()
             print('\n')
             self.display()
-            self.stats(living, births, deaths, survivors)
+            self.stats(stats)
 
         # display lifetime statistics
         else:
