@@ -20,21 +20,8 @@ import csv
 import time
 import typing
 import collections
+from Util import Util
 from os import system
-
-# display utilities
-RED = '\u001b[31m'
-CYAN = '\u001b[36m'
-YELLOW = '\u001b[33m'
-GRAY = '\u001b[1;30m'
-WHITE = '\u001b[0m'
-
-
-def clear() -> None:
-    '''
-    reset terminal screen space
-    '''
-    _ = system('clear')
 
 
 ALIVE = 1
@@ -44,29 +31,29 @@ class Grid:
     '''
     contains the matrix of cells and its dimensions
     '''
-    def __init__(self, width: int, height: int) -> None:
+    def __init__(self, dim: list) -> None:
         '''
         Constructs an instance of a gridspace (width, height)
         '''
-        self.height = height
-        self.width = width
+        self.width = int(dim[0])
+        self.height = int(dim[1])
         self.matrix = []
 
         # each cell has x, y, status (0 = dead, 1 = alive)
-        for xpos in range(width):
-            column = []
-            for ypos in range(height):
-                column.append({'x': xpos, 'y': ypos, 'status': DEAD})
-            self.matrix.append(column)
+        for ypos in range(self.height):
+            row = []
+            for xpos in range(self.width):
+                row.append({'status': DEAD})
+            self.matrix.append(row)
 
     def populate(self) -> None:
         '''
         Randomly populates the cells of a grid (none)
         '''
-        for xpos in range(self.width):
-            for ypos in range(self.height):
+        for ypos in range(self.height):
+            for xpos in range(self.width):
                 status = random.choice([ALIVE, DEAD])
-                self.matrix[xpos][ypos]['status'] = status
+                self.matrix[ypos][xpos]['status'] = status
 
     @staticmethod
     def load(filename: str) -> 'Grid':
@@ -81,9 +68,10 @@ class Grid:
             print(f'Reading {filename} with dimensions:', header)
             width = int(header[0])
             height = int(header[1])
+            dim = [width, height]
 
             # create new grid to populate
-            preset = Grid(width, height)
+            preset = Grid(dim)
             xpos = 0
             ypos = 0
 
@@ -104,37 +92,41 @@ class Grid:
             # place grid dimensions in header
             outfile.write(f'{self.width},{self.height}\n')
 
-            for xpos in range(self.width):
-                for ypos in range(self.height):
-                    outfile.write(str(self.matrix[xpos][ypos]['status']))
+            for ypos in range(self.height):
+                for xpos in range(self.width):
+                    outfile.write(str(self.matrix[ypos][xpos]['status']))
                 outfile.write('\n')
 
     def label(self, iteration: int, generations: int) -> None:
         '''
         Creates a label for the grid display in the terminal (generation)
         '''
-        print(F'Generation: \t{iteration}/{generations}')
-        print('---' * self.height, end='-\n')
+        print(F'Gen:' + f'{iteration}/{generations}'.rjust(self.width*2-2, ' '))
+        print('▀▀' * self.width, end='▀▀\n')
 
     def display(self) -> None:
         '''
         Displays the current grid configuration (none)
         '''
-        # column numbers
-        print(RED, end='  ')
-        for xpos in range(self.height):
-            print(f'{xpos:2d}', end=' ')
-        print(WHITE)
-
+        # columns
+        Util.Red()
+        print('', end='  ')
         for xpos in range(self.width):
-            # row numbers
-            print(CYAN + F'{xpos:2d}' + WHITE, end='')
+            print('░░' if xpos%2 == 0 else '  ', end='')
+        print()
 
-            for ypos in range(self.height):
-                if self.matrix[xpos][ypos]['status'] == ALIVE:
-                    print(YELLOW + ' ■ ', end=WHITE)
+        for ypos in range(self.height):
+            # rows
+            Util.Cyan()
+            print('░░' if ypos%2 == 0 else '  ', end='')
+            Util.White()
+
+            for xpos in range(self.width):
+                
+                if self.matrix[ypos][xpos]['status'] == ALIVE:
+                    print('██', end='')
                 else:
-                    print(GRAY + ' □ ', end=WHITE)
+                    print('  ', end='')
             print()
 
     def census(self) -> int:
@@ -144,10 +136,10 @@ class Grid:
         count = 0
         for xpos in range(self.width):
             for ypos in range(self.height):
-                count += self.matrix[xpos][ypos]['status']  # alive = 1
+                count += self.matrix[ypos][xpos]['status']  # alive = 1
         return count
 
-    def check_neighbors(self, xpos: int, ypos: int) -> int:
+    def check_neighbors(self, ypos: int, xpos: int) -> int:
         '''
         Counts the number of living neighbors (x, y positions)
         '''
@@ -160,23 +152,23 @@ class Grid:
         up = ypos + 1
 
         if xpos > 0:
-            neighbor_count += self.matrix[left][ypos]['status']
+            neighbor_count += self.matrix[ypos][left]['status']
             if ypos > 0:
-                neighbor_count += self.matrix[left][down]['status']
+                neighbor_count += self.matrix[down][left]['status']
             if ypos < height:
-                neighbor_count += self.matrix[left][up]['status']
+                neighbor_count += self.matrix[up][left]['status']
 
         if xpos < width:
-            neighbor_count += self.matrix[right][ypos]['status']
+            neighbor_count += self.matrix[ypos][right]['status']
             if ypos > 0:
-                neighbor_count += self.matrix[right][down]['status']
+                neighbor_count += self.matrix[down][right]['status']
             if ypos < height:
-                neighbor_count += self.matrix[right][up]['status']
+                neighbor_count += self.matrix[up][right]['status']
 
         if ypos > 0:
-            neighbor_count += self.matrix[xpos][down]['status']
+            neighbor_count += self.matrix[down][xpos]['status']
         if ypos < height:
-            neighbor_count += self.matrix[xpos][up]['status']
+            neighbor_count += self.matrix[up][xpos]['status']
 
         return neighbor_count
 
@@ -185,14 +177,14 @@ class Grid:
         '''
         Prints stats of the current grid (Living, Born, Deaths, Survivors)
         '''
+        print()
         print(f'Before: {stats["living"]:>3}')
         print(f'       +{stats["born"]:>3d} (born)')
         print(f'       -{stats["died"]:>3d} (died)')
         print(f'After:  {self.census():3d} ({stats["survivors"]} survivors)')
         print()
 
-    def iterate(self, generations: int, display_all: bool = True,
-                frame_delay: float = 1.0) -> None:
+    def iterate(self, generations: int) -> None:
         '''
         Display several generations of the grid
         '''
@@ -200,16 +192,13 @@ class Grid:
         total_died = 0
         total_born = 0
 
-        # display initial grid with label
-        if display_all:
-            self.label(0, generations)
-            self.display()
-            print()
+        self.label(0, generations)
+        self.display()
+        print()
 
         # process grid generations
         for i in range(generations):
-            if display_all:
-                time.sleep(frame_delay)  # apply delay
+            time.sleep(1)  # apply delay
 
             # create next generation according to the grid rules
             subsequent_matrix = []
@@ -223,19 +212,17 @@ class Grid:
             }
             stale = True
 
-            for xpos in range(self.width):
-                column = []
-                for ypos in range(self.height):
-                    cell = self.matrix[xpos][ypos]
+            for ypos in range(self.height):
+                row = []
+                for xpos in range(self.width):
+                    cell = self.matrix[ypos][xpos]
 
-                    neighbor_count = self.check_neighbors(xpos, ypos)
+                    neighbor_count = self.check_neighbors(ypos, xpos)
 
                     # check grid rules
                     if cell['status'] == ALIVE:
                         if neighbor_count < 2:  # rule 1
-                            column.append({
-                                'x': xpos,
-                                'y': ypos,
+                            row.append({
                                 'status': DEAD
                             })
                             stats['died'] += 1
@@ -243,17 +230,13 @@ class Grid:
                             stale = False
 
                         elif neighbor_count < 4:  # rule 2
-                            column.append({
-                                'x': xpos,
-                                'y': ypos,
+                            row.append({
                                 'status': ALIVE
                             })
                             stats['survivors'] += 1
 
                         elif neighbor_count > 3:  # rule 3
-                            column.append({
-                                'x': xpos,
-                                'y': ypos,
+                            row.append({
                                 'status': DEAD
                             })
                             stats['died'] += 1
@@ -262,9 +245,7 @@ class Grid:
 
                     else:  # dead cell
                         if neighbor_count == 3:  # rule 4
-                            column.append({
-                                'x': xpos,
-                                'y': ypos,
+                            row.append({
                                 'status': ALIVE
                             })
                             stats['born'] += 1
@@ -272,21 +253,19 @@ class Grid:
                             stale = False
 
                         else:  # default = dead
-                            column.append({
-                                'x': xpos,
-                                'y': ypos,
+                            row.append({
                                 'status': DEAD
                             })
 
-                subsequent_matrix.append(column)
+                subsequent_matrix.append(row)
             self.matrix = subsequent_matrix  # update matrix
 
             # label generation & display generation statistics
-            if display_all:
-                clear()
-                self.label(i+1, generations)
-                self.display()
-                self.stats(stats)
+
+            Util.clear()
+            self.label(i+1, generations)
+            self.display()
+            self.stats(stats)
 
             # if stale stop iterations (not for 'next' command)
             if stale:
@@ -294,23 +273,15 @@ class Grid:
                 print('Grid is stagnant; stopping life cycle...')
                 return
 
-        # display last generation if none of the rest
-        if display_all is False:
-            clear()
-            print('\n')
-            self.display()
-            self.stats(stats)
 
-        # display lifetime statistics
-        else:
-            time.sleep(frame_delay)
-            print('Lifetime statistics:')
-            print(f'born:     {total_born:>3d}')
-            print(f'died:     {total_died:>3d}')
-            print()
+        time.sleep(1)
+        print('Lifetime statistics:')
+        print(f'born:     {total_born:>3d}')
+        print(f'died:     {total_died:>3d}')
+        print()
 
     def next(self) -> None:
         '''
         Shows the next generation of the grid (None)
         '''
-        self.iterate(1, False)  # step size, don't display all
+        self.iterate(1)  # step size, don't display all
