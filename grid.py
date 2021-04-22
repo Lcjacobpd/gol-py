@@ -18,14 +18,12 @@ Worldspace definitions for implimentation of Conway's Game of Life
 import random
 import csv
 import time
-import typing
-import collections
-from Util import Util
-from os import system
+from util import Util
 
 
 ALIVE = 1
 DEAD = 0
+
 
 class Grid:
     '''
@@ -39,10 +37,10 @@ class Grid:
         self.height = int(dim[1])
         self.matrix = []
 
-        # each cell has x, y, status (0 = dead, 1 = alive)
-        for ypos in range(self.height):
+        # each cell has status (0 = dead, 1 = alive)
+        for _ in range(self.height):
             row = []
-            for xpos in range(self.width):
+            for _ in range(self.width):
                 row.append({'status': DEAD})
             self.matrix.append(row)
 
@@ -101,7 +99,7 @@ class Grid:
         '''
         Creates a label for the grid display in the terminal (generation)
         '''
-        print(F'Gen:' + f'{iteration}/{generations}'.rjust(self.width*2-2, ' '))
+        print('Gen:' + f'{iteration}/{generations}'.rjust(self.width*2-2, ' '))
         print('▀▀' * self.width, end='▀▀\n')
 
     def display(self) -> None:
@@ -109,20 +107,20 @@ class Grid:
         Displays the current grid configuration (none)
         '''
         # columns
-        Util.Red()
+        Util.red()
         print('', end='  ')
         for xpos in range(self.width):
-            print('░░' if xpos%2 == 0 else '  ', end='')
+            print('░░' if xpos % 2 == 0 else '  ', end='')
         print()
 
         for ypos in range(self.height):
             # rows
-            Util.Cyan()
-            print('░░' if ypos%2 == 0 else '  ', end='')
-            Util.White()
+            Util.cyan()
+            print('░░' if ypos % 2 == 0 else '  ', end='')
+            Util.white()
 
             for xpos in range(self.width):
-                
+
                 if self.matrix[ypos][xpos]['status'] == ALIVE:
                     print('██', end='')
                 else:
@@ -149,29 +147,28 @@ class Grid:
         left = xpos - 1
         right = xpos + 1
         down = ypos - 1
-        up = ypos + 1
+        upper = ypos + 1
 
         if xpos > 0:
             neighbor_count += self.matrix[ypos][left]['status']
             if ypos > 0:
                 neighbor_count += self.matrix[down][left]['status']
             if ypos < height:
-                neighbor_count += self.matrix[up][left]['status']
+                neighbor_count += self.matrix[upper][left]['status']
 
         if xpos < width:
             neighbor_count += self.matrix[ypos][right]['status']
             if ypos > 0:
                 neighbor_count += self.matrix[down][right]['status']
             if ypos < height:
-                neighbor_count += self.matrix[up][right]['status']
+                neighbor_count += self.matrix[upper][right]['status']
 
         if ypos > 0:
             neighbor_count += self.matrix[down][xpos]['status']
         if ypos < height:
-            neighbor_count += self.matrix[up][xpos]['status']
+            neighbor_count += self.matrix[upper][xpos]['status']
 
         return neighbor_count
-
 
     def stats(self, stats: dict) -> None:
         '''
@@ -272,7 +269,6 @@ class Grid:
                 print()
                 print('Grid is stagnant; stopping life cycle...')
                 return
-
 
         time.sleep(1)
         print('Lifetime statistics:')

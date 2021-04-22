@@ -3,12 +3,8 @@ Facilitate user control of the Grid class
 '''
 # !/usr/bin/env python3
 import argparse
-
-import typing
-import collections
-from os import system
 from grid import Grid
-from Util import Util
+from util import Util
 
 
 ALIVE = 1
@@ -39,10 +35,9 @@ elif args.dim:
     grid = Grid(dim)
     grid.populate()
     grid.display()
-    
-    # call iterate if necessary
-    if args.gen:
-        input('\nPress enter to begin...')
-        Util.clear()
-        grid.iterate(args.gen)
-        
+
+# call iterate if necessary
+if args.gen:
+    input('\nPress enter to begin...')
+    Util.clear()
+    grid.iterate(args.gen)
