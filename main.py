@@ -19,24 +19,36 @@ parser.add_argument(
     '-dim',
     type=str,
     default='20,20',
+    help='Grid dimensions: width,height'
 )
-parser.add_argument('--load')
-parser.add_argument('--gen', type=int)
+parser.add_argument(
+    '-load', type=str,
+    help='Filepath to template'
+)
+parser.add_argument(
+    '-gen',
+    type=int,
+    help='Number of generations to display'
+)
 args = parser.parse_args()
 
 
-if args.load:  # if load is specified, disregard dimensions
+Util.clear()
+
+# Load from file
+if args.load:
+    print(f'Loading template: {args.load}...\n')
     grid = Grid.load(args.load)
 
+# Populate dimensions randomly
 elif args.dim:
-    Util.clear()
     print('No template specified, populating randomly...\n')
     dim = args.dim.split(',')
     grid = Grid(dim)
     grid.populate()
     grid.display()
 
-# call iterate if necessary
+# Call iterate if necessary
 if args.gen:
     input('\nPress enter to begin...')
     Util.clear()

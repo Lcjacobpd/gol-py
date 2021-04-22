@@ -16,7 +16,6 @@ Worldspace definitions for implimentation of Conway's Game of Life
 '''
 
 import random
-import csv
 import time
 from util import Util
 
@@ -59,27 +58,21 @@ class Grid:
         Create datagrid from template file (filename)
         '''
         with open(filename, 'rt') as infile:
-            rows = csv.reader(infile)
-            header = next(rows)  # header contains grid dimmensions
-
-            print()
-            print(f'Reading {filename} with dimensions:', header)
-            width = int(header[0])
-            height = int(header[1])
+            lines = infile.readlines()
+            width = len(lines[0]) -1
+            height = len(lines) -1
             dim = [width, height]
 
             # create new grid to populate
             preset = Grid(dim)
-            xpos = 0
-            ypos = 0
+            preset.display()
 
             # convert document lines to grid rows
-            for row in rows:
-                xpos = 0
-                for char in row[0]:
-                    preset.matrix[ypos][xpos]['status'] = int(char)
-                    xpos += 1
-                ypos += 1
+            for ypos in range(height):
+                for xpos in range(width):
+                    val = int(lines[ypos][xpos])
+                    preset.matrix[ypos][xpos]['status'] = val
+
             return preset
 
     def save(self, filename: str) -> None:
@@ -195,7 +188,7 @@ class Grid:
 
         # process grid generations
         for i in range(generations):
-            time.sleep(1)  # apply delay
+            time.sleep(0.5)  # apply delay
 
             # create next generation according to the grid rules
             subsequent_matrix = []
